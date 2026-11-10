@@ -1,8 +1,6 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-import cv2
-import os
 
 # --- SEITENKONFIGURATION ---
 st.set_page_config(
@@ -12,25 +10,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CUSTOM CSS FÜR BARRIEREFREIHEIT & DESIGN ---
+# --- CUSTOM CSS FÜR DESIGN & HINTERGRUND ---
 st.markdown("""
 <style>
-    /* Allgemeine Farbpalette & High Contrast */
-    :root {
-        --bg-color: #0d1b2a;
-        --card-bg: #1b263b;
-        --accent-color: #415a77;
-        --highlight: #e0e1dd;
-        --success: #2a9d8f;
-        --warning: #e76f51;
+    /* Globaler Hintergrund für die gesamte App */
+    .stApp {
+        background-color: #0d1b2a;
+        color: #e0e1dd;
     }
     
-    .main {
-        background-color: var(--bg-color);
-        color: var(--highlight);
-    }
-    
-    /* Überschriften im Chalkboard/Brush-Stil der Vorlage */
+    /* Überschriften-Banner */
     .title-banner {
         background: #f8f9fa;
         color: #1b263b;
@@ -43,23 +32,30 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
     
-    /* Karten-Design für Startscreen (angelehnt an UI-Skizze) */
+    /* Navigationskarten auf der Startseite */
     .nav-card {
-        background-color: #e0f1ed;
-        color: #0d1b2a;
+        background-color: #1b263b;
+        color: #e0e1dd;
         padding: 25px;
         border-radius: 16px;
         text-align: center;
-        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         margin-bottom: 20px;
         border: 2px solid #2a9d8f;
-        transition: transform 0.2s ease;
-    }
-    .nav-card:hover {
-        transform: translateY(-3px);
     }
     
-    /* Große, barrierefreie Buttons */
+    /* Weißer Container für Testbilder (löst das Problem mit dem dunklen/schwarzen Hintergrund) */
+    .image-card {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 16px;
+        text-align: center;
+        display: inline-block;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        margin-bottom: 20px;
+    }
+    
+    /* Buttons im einheitlichen Stil */
     .stButton>button {
         width: 100%;
         border-radius: 12px;
@@ -73,9 +69,10 @@ st.markdown("""
     }
     .stButton>button:hover {
         background-color: #21867a;
+        color: white;
     }
     
-    /* Info-Boxen */
+    /* Ergebnis-Boxen */
     .result-box {
         padding: 20px;
         border-radius: 12px;
@@ -83,6 +80,8 @@ st.markdown("""
         border-left: 8px solid #2a9d8f;
         font-size: 1.2rem;
         margin-top: 20px;
+        color: #e0e1dd;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -95,30 +94,23 @@ if "test_step" not in st.session_state:
 if "test_answers" not in st.session_state:
     st.session_state.test_answers = []
 
-# --- HILFSFUNKTIONEN ---
 def navigate_to(page_name):
     st.session_state.page = page_name
     st.rerun()
 
+# --- HUGGING FACE KI-MODELL LADEN ---
 @st.cache_resource
-def load_ai_model():
-    model_path = "model/keras_model.h5"
-    labels_path = "model/labels.txt"
-    
-    if not os.path.exists(model_path) or not os.path.exists(labels_path):
-        return None, None
-    
+def load_huggingface_model():
     try:
-        import tensorflow as tf
-        model = tf.keras.models.load_model(model_path, compile=False)
-        with open(labels_path, "r", encoding="utf-8") as f:
-            labels = [line.strip() for line in f.readlines()]
-        return model, labels
+        from transformers import pipeline
+        # Lädt ein performantes Vision-Transformer-Modell direkt aus der Hugging Face Cloud
+        classifier = pipeline("image-classification", model="google/vit-base-patch16-224")
+        return classifier
     except Exception as e:
-        st.error(f"Fehler beim Laden des KI-Modells: {e}")
-        return None, None
+        st.error(f"Fehler beim Laden des Hugging Face Modells: {e}")
+        return None
 
-model, labels = load_ai_model()
+classifier = load_huggingface_model()
 
 # --- SIDEBAR NAVIGATION ---
 with st.sidebar:
@@ -133,11 +125,10 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### Barrierefreiheit")
-    high_contrast = st.checkbox("Hoher Kontrast / Modus", value=True)
-    st.info("ChromAId unterstützt Sie im Alltag bei der Farberkennung und beim Farbsehen[cite: 1, 2].")
+    st.info("ChromAId unterstützt Sie im Alltag bei der Farberkennung und beim Farbsehen.")
 
 # ==========================================
-# 1. SEITE: HOME (STARTSEITE)[cite: 2]
+# 1. SEITE: HOME (STARTSEITE)
 # ==========================================
 if st.session_state.page == "home":
     st.markdown('<div class="title-banner">COLOR ASSISTENT</div>', unsafe_allow_html=True)
@@ -147,11 +138,11 @@ if st.session_state.page == "home":
     with col1:
         st.markdown("""
         <div class="nav-card">
-            <h3>👁️ FARBTEST MACHEN</h3>
-            <p>Analysieren Sie Ihre Farbwahrnehmung und erhalten Sie strukturierte Ergebnisse.</p>
+            <h3>👁️ FARBTEST</h3>
+            <p>Analysieren Sie Ihre Farbwahrnehmung mit interaktiven Testtafeln.</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Starten", key="btn_start_test"):
+        if st.button("Test Starten", key="btn_start_test"):
             st.session_state.test_step = 0
             st.session_state.test_answers = []
             navigate_to("test")
@@ -159,26 +150,25 @@ if st.session_state.page == "home":
     with col2:
         st.markdown("""
         <div class="nav-card">
-            <h3>📸 ALLTAGS-FARB KI-ANALYSE</h3>
-            <p>Ein Bild hochladen und KI Farben & Zustände (z. B. Ampeln) bestimmen lassen[cite: 4].</p>
+            <h3>📸 KI-ANALYSE</h3>
+            <p>Laden Sie ein Bild hoch, um Farben & Zustände bestimmen zu lassen.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Bild hochladen", key="btn_start_assistant"):
             navigate_to("assistant")
 
 # ==========================================
-# 2. SEITE: MODUL B - FARBTEST (SCREENING)[cite: 3]
+# 2. SEITE: MODUL B - FARBTEST (SCREENING)
 # ==========================================
 elif st.session_state.page == "test":
-    st.markdown('<div class="title-banner">FARBTEST</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title-banner">FARBTEST (SCREENING)</div>', unsafe_allow_html=True)
     
-    # Definition von Test-Fragen (Ishihara-inspiriert)
     test_questions = [
         {
-            "img": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Ishihara_9.png", # Beispiel Ishihara Tafel
+            "img": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Ishihara_9.png",
             "question": "Welche Zahl oder Form erkennen Sie in diesem Punktmuster?",
             "options": ["5", "6", "7 (oder ähnlich)", "Keine Zahl erkennbar"],
-            "correct": "7 (oder ähnlich)"
+            "correct": "7 (or similar)"
         },
         {
             "img": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Ishihara_1.png",
@@ -199,9 +189,17 @@ elif st.session_state.page == "test":
     if step < len(test_questions):
         q = test_questions[step]
         st.write(f"**Frage {step + 1} von {len(test_questions)}**")
-        st.image(q["img"], width=320, caption="Ishihara-Testtafel")
-        st.markdown(f"### {q['question']}")
         
+        # Bild in einem sauberen weißen Container zentriert darstellen (verhindert unsichtbare/schwarze Bildbereiche)
+        st.markdown(f"""
+        <div style="text-align: center;">
+            <div class="image-card">
+                <img src="{q['img']}" width="280" style="border-radius: 8px;" />
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"### {q['question']}")
         selected_option = st.radio("Bitte wählen Sie Ihre Option:", q["options"], key=f"q_{step}")
         
         if st.button("Nächste Frage ➔"):
@@ -209,22 +207,18 @@ elif st.session_state.page == "test":
             st.session_state.test_step += 1
             st.rerun()
     else:
-        # Auswertung
         st.markdown("### 📊 Testergebnis & Auswertung")
         st.success("Der Farbtest wurde erfolgreich abgeschlossen!")
         
-        # Algorithmus-Score (vereinfacht zu Demonstrationszwecken)
-        correct_count = sum(1 for i, ans in enumerate(st.session_state.test_answers) if ans == test_questions[i]["correct"])
+        correct_count = sum(1 for i, ans in enumerate(st.session_state.test_answers) if ans in test_questions[i]["correct"] or "7" in ans)
         
-        if correct_count == len(test_questions):
+        if correct_count >= 2:
             st.info("Ergebnis-Tendenz: **Unauffälliges Farbsehen**. Es konnten keine signifikanten Anzeichen einer Farbfehlsichtigkeit festgestellt werden.")
-        elif correct_count >= 1:
-            st.warning("Ergebnis-Tendenz: **Mögliche Rot-Grün-Schwäche (z. B. Deuteranopie/Protanopie)** erkannt.")
         else:
-            st.warning("Ergebnis-Tendenz: **Auffälligkeiten im Farbsehen** festgestellt.")
+            st.warning("Ergebnis-Tendenz: **Mögliche Auffälligkeiten im Farbsehen (z. B. Rot-Grün-Schwäche)** erkannt.")
             
         st.markdown("""
-        > **Medizinischer Hinweis:** Dieses Screening dient lediglich der ersten Orientierung und ersetzt keinesfalls eine professionelle Diagnose beim Augenarzt oder Optiker.
+        > **Medizinischer Hinweis:** Dieses Screening dient lediglich der ersten Orientierung und ersetzt keine professionelle Diagnose beim Augenarzt oder Optiker.
         """)
         
         if st.button("🔄 Test wiederholen"):
@@ -233,12 +227,12 @@ elif st.session_state.page == "test":
             st.rerun()
 
 # ==========================================
-# 3. SEITE: MODUL A - ALLTAGS-ASSISTENT[cite: 4]
+# 3. SEITE: MODUL A - ALLTAGS-ASSISTENT (HUGGING FACE KI)
 # ==========================================
 elif st.session_state.page == "assistant":
-    st.markdown('<div class="title-banner">ALLTAGSHILFE & KI-ANALYSE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title-banner">ALLTAGSHILFE & HUGGING FACE KI</div>', unsafe_allow_html=True)
     
-    st.markdown("Laden Sie ein Foto von Ampeln, Kabeln oder Lebensmitteln hoch, um eine sofortige KI-Analyse zu erhalten[cite: 4].")
+    st.markdown("Laden Sie ein Foto hoch, um eine KI-gestützte Analyse direkt aus der Cloud zu starten.")
     
     uploaded_file = st.file_uploader("Foto auswählen (JPG, PNG)", type=["jpg", "jpeg", "png"])
     
@@ -246,34 +240,23 @@ elif st.session_state.page == "assistant":
         image = Image.open(uploaded_file).convert("RGB")
         st.image(image, caption="Hochgeladenes Bild", width=350)
         
-        if st.button("🔍 Bild analysieren"):
-            with st.spinner("KI analysiert Farben und Zustände..."):
-                if model is not None and labels is not None:
-                    # Echte Teachable Machine Modell-Inferenz
-                    image_resized = image.resize((224, 224))
-                    image_array = np.asarray(image_resized)
-                    normalized_image_array = (image_array.astype(np.float32) / 127.5) - 1
-                    data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
-                    data[0] = normalized_image_array
-                    
-                    prediction = model.predict(data)
-                    index = np.argmax(prediction)
-                    class_name = labels[index]
-                    confidence_score = prediction[0][index]
-                    
-                    st.markdown(f"""
-                    <div class="result-box">
-                        <h3>Ergebnis:</h3>
-                        <p><b>{class_name}</b></p>
-                        <p style="font-size: 0.9rem; color: #a0aec0;">Konfidenz: {confidence_score * 100:.2f}%</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+        if st.button("🔍 Bild mit Hugging Face KI analysieren"):
+            with st.spinner("Frage Hugging Face Cloud-Modell ab..."):
+                if classifier is not None:
+                    try:
+                        results = classifier(image)
+                        top_result = results[0]
+                        label = top_result['label']
+                        score = top_result['score'] * 100
+                        
+                        st.markdown(f"""
+                        <div class="result-box">
+                            <h3>KI-Ergebnis (Hugging Face):</h3>
+                            <p><b>Klasse:</b> {label}</p>
+                            <p><b>Konfidenz:</b> {score:.2f}%</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"Fehler bei der Klassifikation: {e}")
                 else:
-                    # Fallback-Modus für Demo-Zwecke (ohne `.h5` Datei)
-                    st.markdown("""
-                    <div class="result-box" style="border-left-color: #e76f51;">
-                        <h3>Ergebnis (Demo-Modus):</h3>
-                        <p style="font-size: 1.5rem; font-weight: bold; color: #ff6b6b;">🔴 Die Ampel ist rot — STOPP</p>
-                        <p style="font-size: 0.9rem; color: #a0aec0;">(Hinweis: Kein Teachable Machine Modell gefunden. Legen Sie <code>keras_model.h5</code> & <code>labels.txt</code> in den Ordner <code>model/</code>, um echte Klassifikation zu aktivieren).</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.warning("Das Hugging Face Modell konnte nicht geladen werden.")

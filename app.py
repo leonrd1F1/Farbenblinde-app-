@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import cv2
+import base64
 
 # --- SEITENKONFIGURATION ---
 st.set_page_config(
@@ -11,31 +12,74 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1:1 EXAKTES DESIGN MIT ISHIHARA-PUNKT-HINTERGRUND ---
-st.markdown("""
+# --- EXAKTER DESIGN-HINTERGRUND DIREKT IM CODE ALS SVG GENERIERT ---
+svg_bg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <rect width="1000" height="1000" fill="#0d1b2a"/>
+  <!-- Cluster 1: Coral / Pink oben links -->
+  <g fill="#e63946" opacity="0.85">
+    <circle cx="100" cy="100" r="22"/><circle cx="135" cy="80" r="14"/><circle cx="80" cy="140" r="18"/>
+    <circle cx="150" cy="120" r="12"/><circle cx="110" cy="170" r="25"/><circle cx="175" cy="95" r="16"/>
+    <circle cx="60" cy="90" r="15"/><circle cx="130" cy="200" r="19"/><circle cx="90" cy="230" r="14"/>
+    <circle cx="190" cy="150" r="20"/><circle cx="210" cy="110" r="13"/><circle cx="165" cy="190" r="17"/>
+  </g>
+  <g fill="#f15bb5" opacity="0.7">
+    <circle cx="70" cy="180" r="10"/><circle cx="150" cy="60" r="12"/><circle cx="200" cy="80" r="9"/>
+  </g>
+
+  <!-- Cluster 2: Mint / Grün in der Mitte -->
+  <g fill="#2a9d8f" opacity="0.9">
+    <circle cx="350" cy="300" r="28"/><circle cx="400" cy="270" r="18"/><circle cx="310" cy="340" r="22"/>
+    <circle cx="430" cy="320" r="15"/><circle cx="370" cy="370" r="24"/><circle cx="420" cy="380" r="19"/>
+    <circle cx="300" cy="280" r="16"/><circle cx="350" cy="420" r="20"/><circle cx="460" cy="350" r="14"/>
+    <circle cx="480" cy="290" r="22"/><circle cx="380" cy="230" r="17"/><circle cx="330" cy="390" r="15"/>
+  </g>
+  <g fill="#52b788" opacity="0.8">
+    <circle cx="450" cy="250" r="12"/><circle cx="290" cy="330" r="11"/><circle cx="390" cy="430" r="13"/>
+  </g>
+
+  <!-- Cluster 3: Gelb / Orange unten rechts -->
+  <g fill="#e9c46a" opacity="0.9">
+    <circle cx="750" cy="750" r="30"/><circle cx="820" cy="720" r="20"/><circle cx="700" cy="800" r="25"/>
+    <circle cx="850" cy="780" r="16"/><circle cx="780" cy="830" r="22"/><circle cx="830" cy="850" r="18"/>
+    <circle cx="680" cy="740" r="15"/><circle cx="740" cy="880" r="19"/><circle cx="880" cy="810" r="14"/>
+    <circle cx="910" cy="740" r="24"/><circle cx="800" cy="680" r="17"/><circle cx="720" cy="850" r="16"/>
+  </g>
+  <g fill="#f4a261" opacity="0.85">
+    <circle cx="870" cy="690" r="13"/><circle cx="670" cy="790" r="12"/><circle cx="770" cy="910" r="15"/>
+  </g>
+
+  <!-- Cluster 4: Violett / Blau in der Mitte rechts -->
+  <g fill="#a8dadc" opacity="0.85">
+    <circle cx="600" cy="400" r="20"/><circle cx="650" cy="370" r="15"/><circle cx="560" cy="440" r="18"/>
+    <circle cx="680" cy="420" r="12"/><circle cx="620" cy="470" r="22"/><circle cx="580" cy="360" r="14"/>
+  </g>
+  <g fill="#457b9d" opacity="0.85">
+    <circle cx="700" cy="460" r="16"/><circle cx="640" cy="510" r="19"/><circle cx="550" cy="400" r="13"/>
+  </g>
+
+  <!-- Kleine Ishihara-Testteller (Mini-Kreise mit gestrichelten Rändern) -->
+  <g stroke="#ffffff" stroke-width="1.5" stroke-dasharray="3,3" fill="#1b263b">
+    <circle cx="150" cy="350" r="25"/><circle cx="650" cy="200" r="25"/>
+    <circle cx="300" cy="650" r="25"/><circle cx="800" cy="550" r="25"/>
+    <circle cx="500" cy="750" r="25"/><circle cx="200" cy="850" r="25"/>
+  </g>
+</svg>'''
+
+svg_base64 = base64.b64encode(svg_bg.encode('utf-8')).decode('utf-8')
+
+# --- STYLING & DESIGN ---
+st.markdown(f"""
 <style>
-    /* Exakter Hintergrund mit querverstreuten Rot-Grün-Gelb-Blauen Ishihara-Punkten nach Vorlage */
-    .stApp {
-        background-color: #0d1b2a;
-        background-image: 
-            radial-gradient(#e63946 14px, transparent 15px),
-            radial-gradient(#2a9d8f 10px, transparent 11px),
-            radial-gradient(#e9c46a 8px, transparent 9px),
-            radial-gradient(#52b788 16px, transparent 17px),
-            radial-gradient(#e76f51 12px, transparent 13px),
-            radial-gradient(#a8dadc 14px, transparent 15px),
-            radial-gradient(#f4a261 9px, transparent 10px),
-            radial-gradient(#457b9d 20px, transparent 21px),
-            radial-gradient(#e0533c 11px, transparent 12px),
-            radial-gradient(#8ab17d 15px, transparent 16px);
-        background-size: 220px 220px, 160px 160px, 130px 130px, 260px 260px, 190px 190px, 230px 230px, 170px 170px, 310px 310px, 140px 140px, 200px 200px;
-        background-position: 0 0, 35px 55px, 85px 25px, 125px 145px, 55px 185px, 165px 85px, 205px 45px, 105px 225px, 15px 115px, 90px 150px;
+    .stApp {{
+        background-image: url("data:image/svg+xml;base64,{svg_base64}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         background-attachment: fixed;
-        color: #e0e1dd;
-    }
+    }}
     
-    /* Der charakteristische Pinselstrich-Banner für Überschriften */
-    .brush-banner {
+    /* Pinselstrich-Banner für Überschriften */
+    .brush-banner {{
         background: #f8f9fa;
         color: #1b263b;
         padding: 18px 25px;
@@ -45,49 +89,50 @@ st.markdown("""
         font-size: 2.2rem;
         letter-spacing: 1.5px;
         margin: 10px auto 30px auto;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         border: 4px solid #ffffff;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         text-transform: uppercase;
-    }
+    }}
     
-    /* Startkarten im originalen Mint-Ton (wie in Skizze 2) */
-    .sketch-card {
-        background-color: #e0f1ed;
+    /* Startkarten im Mint-Ton */
+    .sketch-card {{
+        background-color: rgba(224, 241, 237, 0.95);
         color: #0d1b2a;
         padding: 30px;
         border-radius: 20px;
         text-align: center;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         margin-bottom: 25px;
         border: 3px solid #2a9d8f;
-    }
-    .sketch-card h3 {
+        backdrop-filter: blur(5px);
+    }}
+    .sketch-card h3 {{
         color: #0d1b2a;
         font-weight: 800;
         font-size: 1.4rem;
         margin-bottom: 10px;
-    }
-    .sketch-card p {
+    }}
+    .sketch-card p {{
         color: #1b263b;
         font-size: 1rem;
         margin-bottom: 20px;
-    }
+    }}
     
-    /* Weißer Container für Ishihara-Testbilder (garantiert perfekte Sichtbarkeit) */
-    .image-card {
+    /* Weißer Container für Testbilder */
+    .image-card {{
         background-color: #ffffff;
-        padding: 20px;
+        padding: 22px;
         border-radius: 20px;
         text-align: center;
         display: inline-block;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.6);
         margin: 15px auto;
         border: 4px solid #ffffff;
-    }
+    }}
     
-    /* Streamlit Buttons an das Design anpassen */
-    .stButton>button {
+    /* Buttons */
+    .stButton>button {{
         width: 100%;
         border-radius: 14px;
         height: 3.5em;
@@ -96,26 +141,29 @@ st.markdown("""
         background-color: #3b82f6;
         color: white;
         border: none;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         transition: all 0.2s ease;
-    }
-    .stButton>button:hover {
+    }}
+    .stButton>button:hover {{
         background-color: #2563eb;
         transform: translateY(-2px);
-    }
+    }}
     
     /* Ergebnis- und Info-Boxen */
-    .result-box {
+    .result-box {{
         padding: 22px;
         border-radius: 16px;
-        background-color: #1b263b;
+        background-color: rgba(27, 38, 59, 0.95);
         border-left: 8px solid #2a9d8f;
         font-size: 1.1rem;
         margin-top: 20px;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.4);
         color: #e0e1dd;
-        border: 1px solid #415a77;
-    }
+        border-top: 1px solid #415a77;
+        border-right: 1px solid #415a77;
+        border-bottom: 1px solid #415a77;
+        backdrop-filter: blur(5px);
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -131,7 +179,7 @@ def navigate_to(page_name):
     st.session_state.page = page_name
     st.rerun()
 
-# --- FARBSIMULATIONS- & ANALYSE-ALGORITHMEN ---
+# --- ALGORITHMEN ---
 def simulate_color_blindness(image_np, deficiency_type):
     img_f = image_np.astype(np.float32) / 255.0
     if deficiency_type == 'protanopia':
@@ -162,7 +210,7 @@ def get_dominant_colors(image_pil, k=4):
 
 # --- SIDEBAR NAVIGATION ---
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/chameleon.png", width=70) # Chamäleon-Logo[cite: 1]
+    st.image("https://img.icons8.com/color/96/chameleon.png", width=70)
     st.markdown("### **ChromAId Navigation**")
     if st.button("🏠 Startseite"):
         navigate_to("home")
@@ -172,11 +220,10 @@ with st.sidebar:
         navigate_to("assistant")
     
     st.markdown("---")
-    st.markdown("### Info")
-    st.info("Barrierefreie Farbunterstützung & Screening nach Designvorgabe.")
+    st.info("Barrierefreie Farbunterstützung & Screening nach Ihrem exakten Design.")
 
 # ==========================================
-# 1. SEITE: HOME (STARTSEITE)[cite: 2]
+# 1. SEITE: HOME (STARTSEITE)
 # ==========================================
 if st.session_state.page == "home":
     st.markdown('<div class="brush-banner">COLOR ASSISTENT</div>', unsafe_allow_html=True)
@@ -197,14 +244,14 @@ if st.session_state.page == "home":
     st.markdown("""
     <div class="sketch-card">
         <h3>📸 ALLTAGS-FARB KI-ANALYSE</h3>
-        <p>Ein Bild hochladen und KI Farben & Zustände (z. B. Ampeln) bestimmen lassen[cite: 4].</p>
+        <p>Ein Bild hochladen und KI Farben & Zustände (z. B. Ampeln) bestimmen lassen.</p>
     </div>
     """, unsafe_allow_html=True)
     if st.button("Bild hochladen", key="btn_home_assistant"):
         navigate_to("assistant")
 
 # ==========================================
-# 2. SEITE: MODUL B - FARBTEST[cite: 3]
+# 2. SEITE: MODUL B - FARBTEST
 # ==========================================
 elif st.session_state.page == "test":
     st.markdown('<div class="brush-banner">FARBTEST</div>', unsafe_allow_html=True)
@@ -239,7 +286,7 @@ elif st.session_state.page == "test":
         st.markdown(f"""
         <div style="text-align: center;">
             <div class="image-card">
-                <img src="{q['img']}" width="250" style="border-radius: 12px;" />
+                <img src="{q['img']}" width="260" style="border-radius: 12px;" />
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -274,12 +321,12 @@ elif st.session_state.page == "test":
             st.rerun()
 
 # ==========================================
-# 3. SEITE: MODUL A - ALLTAGSHILFE[cite: 4]
+# 3. SEITE: MODUL A - ALLTAGSHILFE
 # ==========================================
 elif st.session_state.page == "assistant":
     st.markdown('<div class="brush-banner">ALLTAGSHILFE</div>', unsafe_allow_html=True)
     
-    st.markdown("Laden Sie ein Foto von Ampeln, Kabeln oder Lebensmitteln hoch, um Farbwerte zu prüfen und Seh-Simulationen zu starten[cite: 4].")
+    st.markdown("Laden Sie ein Foto von Ampeln, Kabeln oder Lebensmitteln hoch, um Farbwerte zu prüfen und Seh-Simulationen zu starten.")
     
     uploaded_file = st.file_uploader("Foto auswählen (JPG, PNG)", type=["jpg", "jpeg", "png"])
     
@@ -311,6 +358,6 @@ elif st.session_state.page == "assistant":
                 rgb = col_data["rgb"]
                 with cols[i]:
                     st.markdown(f"""
-                    <div style="background-color: {hex_val}; height: 70px; border-radius: 12px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
-                    <p style="text-align: center; margin-top: 6px; font-weight: bold; font-size: 0.9rem;">{hex_val}<br><span style="font-size:0.75rem; color:#a0aec0;">RGB {rgb}</span></p>
+                    <div style="background-color: {hex_val}; height: 70px; border-radius: 12px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"></div>
+                    <p style="text-align: center; margin-top: 6px; font-weight: bold; font-size: 0.9rem; color: #ffffff;">{hex_val}<br><span style="font-size:0.75rem; color:#cbd5e1;">RGB {rgb}</span></p>
                     """, unsafe_allow_html=True)

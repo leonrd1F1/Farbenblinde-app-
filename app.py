@@ -183,10 +183,10 @@ def generate_ishihara_plate(target_text, bg_colors, fg_colors, size=400):
     try:
         # Verwende eine gut skalierbare Standard-Schriftart
         font = ImageFont.truetype("DejaVuSans-Bold.ttf", 170)
-    except:
+    except Exception:
         try:
             font = ImageFont.load_default()
-        except:
+        except Exception:
             font = None
 
     # Text zentriert zeichnen
@@ -544,7 +544,7 @@ elif st.session_state.page == "assistant":
 # SEITE 4: MODUL C - WCAG KONTRAST-CHECKER
 # -----------------------------------------------------------------------------
 elif st.session_state.page == "contrast":
-    st.markdown('<div class="brush-banner">WCAG KONTRAST-CHECKER</div>', unsafe_allow_html=Team := True)
+    st.markdown('<div class="brush-banner">WCAG KONTRAST-CHECKER</div>', unsafe_allow_html=True)
     
     st.markdown("Prüfen Sie, ob Text- und Hintergrundfarben barrierefrei und gut lesbar sind (entspricht WCAG 2.1 Richtlinien).")
     
@@ -610,4 +610,4 @@ elif st.session_state.page == "help":
     """)
     
     if st.button("⬅️ Zurück zur Startseite"):
-        navigate_to("home")
+        navigate_to("home") 

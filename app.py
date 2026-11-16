@@ -11,24 +11,30 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1:1 EXAKTES DESIGN NACH VORLAGE & SKIZZEN ---
+# --- 1:1 EXAKTES DESIGN MIT ISHIHARA-PUNKT-HINTERGRUND ---
 st.markdown("""
 <style>
-    /* Globaler Hintergrund: Dunkles Blau mit Ishihara-Punkt-Atmosphäre */
+    /* Exakter Hintergrund mit querverstreuten Rot-Grün-Gelb-Blauen Ishihara-Punkten nach Vorlage */
     .stApp {
         background-color: #0d1b2a;
         background-image: 
-            radial-gradient(#e76f51 15px, transparent 16px),
-            radial-gradient(#2a9d8f 12px, transparent 13px),
-            radial-gradient(#e9c46a 10px, transparent 11px),
-            radial-gradient(#264653 18px, transparent 19px);
-        background-size: 180px 180px;
-        background-position: 0 0, 40px 60px, 90px 20px, 120px 100px;
+            radial-gradient(#e63946 14px, transparent 15px),
+            radial-gradient(#2a9d8f 10px, transparent 11px),
+            radial-gradient(#e9c46a 8px, transparent 9px),
+            radial-gradient(#52b788 16px, transparent 17px),
+            radial-gradient(#e76f51 12px, transparent 13px),
+            radial-gradient(#a8dadc 14px, transparent 15px),
+            radial-gradient(#f4a261 9px, transparent 10px),
+            radial-gradient(#457b9d 20px, transparent 21px),
+            radial-gradient(#e0533c 11px, transparent 12px),
+            radial-gradient(#8ab17d 15px, transparent 16px);
+        background-size: 220px 220px, 160px 160px, 130px 130px, 260px 260px, 190px 190px, 230px 230px, 170px 170px, 310px 310px, 140px 140px, 200px 200px;
+        background-position: 0 0, 35px 55px, 85px 25px, 125px 145px, 55px 185px, 165px 85px, 205px 45px, 105px 225px, 15px 115px, 90px 150px;
         background-attachment: fixed;
         color: #e0e1dd;
     }
     
-    /* Der charakteristische Pinselstrich-Banner für Überschriften (aus deinen Skizzen) */
+    /* Der charakteristische Pinselstrich-Banner für Überschriften */
     .brush-banner {
         background: #f8f9fa;
         color: #1b263b;
@@ -45,7 +51,7 @@ st.markdown("""
         text-transform: uppercase;
     }
     
-    /* Startkarten im originalen Mint-Ton (exakt wie in Skizze 2) */
+    /* Startkarten im originalen Mint-Ton (wie in Skizze 2) */
     .sketch-card {
         background-color: #e0f1ed;
         color: #0d1b2a;
@@ -68,7 +74,7 @@ st.markdown("""
         margin-bottom: 20px;
     }
     
-    /* Weißer Container für Ishihara-Testbilder */
+    /* Weißer Container für Ishihara-Testbilder (garantiert perfekte Sichtbarkeit) */
     .image-card {
         background-color: #ffffff;
         padding: 20px;
@@ -108,9 +114,7 @@ st.markdown("""
         margin-top: 20px;
         box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         color: #e0e1dd;
-        border-top: 1px solid #415a77;
-        border-right: 1px solid #415a77;
-        border-bottom: 1px solid #415a77;
+        border: 1px solid #415a77;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -177,7 +181,6 @@ with st.sidebar:
 if st.session_state.page == "home":
     st.markdown('<div class="brush-banner">COLOR ASSISTENT</div>', unsafe_allow_html=True)
     
-    # Exakter Nachbau der zwei Hauptkarten aus Skizze 2
     st.markdown("""
     <div class="sketch-card">
         <h3>👁️ FARBTEST MACHEN</h3>
@@ -233,7 +236,6 @@ elif st.session_state.page == "test":
         q = test_questions[step]
         st.write(f"**Frage {step + 1} von {len(test_questions)}**")
         
-        # Garantiert perfekt sichtbares Bild in weißem Container
         st.markdown(f"""
         <div style="text-align: center;">
             <div class="image-card">

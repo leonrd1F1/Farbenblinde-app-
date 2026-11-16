@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- EXAKTER DESIGN-HINTERGRUND DIREKT IM CODE ALS SVG GENERIERT ---
+# --- EXAKTER DESIGN-HINTERGRUND ALS SVG IM CODE ---
 svg_bg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
   <rect width="1000" height="1000" fill="#0d1b2a"/>
   <!-- Cluster 1: Coral / Pink oben links -->
@@ -57,7 +57,7 @@ svg_bg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" v
     <circle cx="700" cy="460" r="16"/><circle cx="640" cy="510" r="19"/><circle cx="550" cy="400" r="13"/>
   </g>
 
-  <!-- Kleine Ishihara-Testteller (Mini-Kreise mit gestrichelten Rändern) -->
+  <!-- Kleine Ishihara-Testteller -->
   <g stroke="#ffffff" stroke-width="1.5" stroke-dasharray="3,3" fill="#1b263b">
     <circle cx="150" cy="350" r="25"/><circle cx="650" cy="200" r="25"/>
     <circle cx="300" cy="650" r="25"/><circle cx="800" cy="550" r="25"/>
@@ -117,18 +117,6 @@ st.markdown(f"""
         color: #1b263b;
         font-size: 1rem;
         margin-bottom: 20px;
-    }}
-    
-    /* Weißer Container für Testbilder */
-    .image-card {{
-        background-color: #ffffff;
-        padding: 22px;
-        border-radius: 20px;
-        text-align: center;
-        display: inline-block;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-        margin: 15px auto;
-        border: 4px solid #ffffff;
     }}
     
     /* Buttons */
@@ -251,7 +239,7 @@ if st.session_state.page == "home":
         navigate_to("assistant")
 
 # ==========================================
-# 2. SEITE: MODUL B - FARBTEST
+# 2. SEITE: MODUL B - FARBTEST (Natives st.image behoben!)
 # ==========================================
 elif st.session_state.page == "test":
     st.markdown('<div class="brush-banner">FARBTEST</div>', unsafe_allow_html=True)
@@ -283,13 +271,11 @@ elif st.session_state.page == "test":
         q = test_questions[step]
         st.write(f"**Frage {step + 1} von {len(test_questions)}**")
         
-        st.markdown(f"""
-        <div style="text-align: center;">
-            <div class="image-card">
-                <img src="{q['img']}" width="260" style="border-radius: 12px;" />
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # Verwende st.container(border=True) für einen sauberen, weißen Rahmen und st.image für fehlerfreie Darstellung
+        with st.container(border=True):
+            col_center1, col_img, col_center2 = st.columns([1, 2, 1])
+            with col_img:
+                st.image(q['img'], width=280)
         
         st.markdown(f"### {q['question']}")
         selected_option = st.radio("Bitte wählen Sie Ihre Option:", q["options"], key=f"q_opt_{step}")
